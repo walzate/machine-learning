@@ -62,4 +62,7 @@ predict('ManCity', 'Liverpool')
 predict('ManCity', 'Arsenal')
 predict('Arsenal', 'Wigan')
 predict('ManCity', 'ManUnited')
+predict('ManCity', 'QPR')
+predict('Chelsea', 'Newcastle')
+predict('Arsenal', 'Sunderland')
 
