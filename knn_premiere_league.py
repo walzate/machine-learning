@@ -7,7 +7,7 @@ from sklearn import preprocessing
 # based on https://hub.coursera-notebooks.org/user/smppgbjoljzaooewjwbuoj/notebooks/Module%201.ipynb
 
 # Loading the file
-matches = pd.read_csv('premiere_league_total_1993-2015_preprocesado_solo_caracteristicas.csv')
+matches = pd.read_csv('premiere_league_total_1993-2015_preprocesado.csv')
 
 # Preprocessing
 matches['HomeTeam'] = matches['HomeTeam'].str.replace('\'', '')
@@ -22,11 +22,15 @@ matches['AwayTeamcat'] = matches['AwayTeam'].cat.codes
 matches['FTR'] = matches['FTR'].astype('category')
 matches['FTRcat'] = matches['FTR'].cat.codes
 
+matches['Date'] =  pd.to_datetime(matches['Date'])
+matches['MatchYear'] =  matches['Date'].dt.year
+
 print(matches.dtypes)
 print(matches.head())
+matches.to_csv('final.csv')
 
 # X features, y labels
-X = matches[['HomeTeamcat', 'AwayTeamcat']]
+X = matches[['HomeTeamcat', 'AwayTeamcat', 'MatchYear']]
 y = matches['FTRcat']
 
 # default is 75% / 25% train-test split
@@ -54,15 +58,21 @@ print(lookup_away_team)
 
 #Predictions
 def predict(home, away):
-    match_prediction = knn.predict([[lookup_home_team[home], lookup_home_team[away]]])
+    match_prediction = knn.predict([[lookup_home_team[home], lookup_home_team[away], 2016]])
     print(home,' vs ',away, ': ',lookup_ftr[match_prediction[0]])
 
 predict('Arsenal', 'ManUnited')
+predict('ManUnited', 'Arsenal')
+
 predict('ManCity', 'Liverpool')
+
 predict('ManCity', 'Arsenal')
 predict('Arsenal', 'Wigan')
 predict('ManCity', 'ManUnited')
 predict('ManCity', 'QPR')
 predict('Chelsea', 'Newcastle')
+predict('Newcastle', 'Chelsea')
+
 predict('Arsenal', 'Sunderland')
+predict('Sunderland', 'Arsenal')
 
