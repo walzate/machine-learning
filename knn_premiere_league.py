@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
+import glob
+import os
 
 from sklearn.neighbors import KNeighborsClassifier
 
@@ -11,10 +13,38 @@ from sklearn.neighbors import KNeighborsClassifier
 knn = None
 lookup_home_team = None
 lookup_ftr = None
+file_name = 'total.csv'
+data_path = 'seasons/'
+final_prefix = 'final_'
+
+def merge_files():
+    path = data_path
+    allFiles = glob.glob(path + "/E0_*.csv")
+    frame = pd.DataFrame()
+    list_ = []
+    for file_ in allFiles:
+        print(os.path.basename(file_))
+        df = pd.read_csv(file_,index_col=None, header=0, error_bad_lines=False, skip_blank_lines = True)
+        df['Date'] =  pd.to_datetime(df['Date'])
+        # TODO Middleboro and Middlesbrough
+        df['HomeTeam'] = df['HomeTeam'].replace('', np.nan)
+        df.dropna(subset=['HomeTeam'], inplace=True)
+        df['HomeTeam'] = df['HomeTeam'].str.replace('Middlesboro','Middlesbrough')
+        df['AwayTeam'] = df['AwayTeam'].str.replace('Middlesboro','Middlesbrough')
+        list_.append(df)
+    frame = pd.concat(list_)
+    frame.to_csv(data_path+'total.csv')
+
 
 def preprocess():
+    global file_name
+    global data_path
+    global final_prefix
+
     # Loading the file
-    matches = pd.read_csv('premiere_league_total_1993-2015_preprocesado.csv')
+    matches = pd.read_csv(data_path+file_name)
+
+    matches = matches[['Date', 'HomeTeam', 'AwayTeam', 'FTR']]
 
     # Preprocessing
     matches['HomeTeam'] = matches['HomeTeam'].str.replace('\'', '')
@@ -28,22 +58,30 @@ def preprocess():
     matches['AwayTeamcat'] = matches['AwayTeam'].cat.codes
     matches['FTR'] = matches['FTR'].astype('category')
     matches['FTRcat'] = matches['FTR'].cat.codes
+    
 
     matches['Date'] =  pd.to_datetime(matches['Date'])
     matches['MatchYear'] =  matches['Date'].dt.year
+    #matches['MatchYear'] = matches['MatchYear'].astype('int')
+
+    matches = matches[matches.FTRcat != -1]
 
     print(matches.dtypes)
     print(matches.head())
-    matches.to_csv('final.csv')
+    matches.to_csv(data_path + final_prefix + file_name)
 
 def fit(k):
     global knn
     global lookup_home_team
     global lookup_ftr
     global lookup_away_team
+    global file_name
+    global data_path
+    global final_prefix
+
 
     # Loading the file
-    matches = pd.read_csv('final.csv')
+    matches = pd.read_csv(data_path + final_prefix + file_name)
 
     # X features, y labels
     X = matches[['HomeTeamcat', 'AwayTeamcat', 'MatchYear']]
@@ -77,7 +115,7 @@ def predict(home, away):
     global lookup_ftr
     global lookup_away_team
 
-    match_prediction = knn.predict([[lookup_home_team[home], lookup_home_team[away], 2016]])
+    match_prediction = knn.predict([[lookup_home_team[home], lookup_home_team[away], 2018]])
     print(home,' vs ',away, ': ',lookup_ftr[match_prediction[0]])
 
 def predictions():
@@ -90,7 +128,7 @@ def findBestK():
     bestK = 0
     bestAccuracy = 0.0
     foundAccuracy = 0.0
-    for k in range(1, 45):
+    for k in range(1, 51):
         foundAccuracy = fit(k)
         if(foundAccuracy > bestAccuracy):
             bestAccuracy = foundAccuracy
@@ -98,8 +136,10 @@ def findBestK():
     print('Best k: ',bestK, 'Best accuracy: ', bestAccuracy)
     return bestK
             
-
+#merge_files()            
+#preprocess()
+#findBestK()
 #fit(findBestK())
-fit(29)
+fit(34)
 predictions()
 
