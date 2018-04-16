@@ -16,6 +16,7 @@ lookup_ftr = None
 file_name = 'total.csv'
 data_path = 'seasons/'
 final_prefix = 'final_'
+withYear = False
 
 def merge_files():
     path = data_path
@@ -26,7 +27,7 @@ def merge_files():
         print(os.path.basename(file_))
         df = pd.read_csv(file_,index_col=None, header=0, error_bad_lines=False, skip_blank_lines = True)
         df['Date'] =  pd.to_datetime(df['Date'])
-        # TODO Middleboro and Middlesbrough
+
         df['HomeTeam'] = df['HomeTeam'].replace('', np.nan)
         df.dropna(subset=['HomeTeam'], inplace=True)
         df['HomeTeam'] = df['HomeTeam'].str.replace('Middlesboro','Middlesbrough')
@@ -78,13 +79,17 @@ def fit(k):
     global file_name
     global data_path
     global final_prefix
+    global withYear
 
 
     # Loading the file
     matches = pd.read_csv(data_path + final_prefix + file_name)
 
     # X features, y labels
-    X = matches[['HomeTeamcat', 'AwayTeamcat', 'MatchYear']]
+    if(withYear):
+        X = matches[['HomeTeamcat', 'AwayTeamcat', 'MatchYear']]
+    else:
+        X = matches[['HomeTeamcat', 'AwayTeamcat']]
     y = matches['FTRcat']
 
     # default is 75% / 25% train-test split
@@ -114,8 +119,13 @@ def predict(home, away):
     global lookup_home_team
     global lookup_ftr
     global lookup_away_team
+    global withYear
+    yearToEvaluate = 2018
 
-    match_prediction = knn.predict([[lookup_home_team[home], lookup_home_team[away], 2018]])
+    if(withYear):
+        match_prediction = knn.predict([[lookup_home_team[home], lookup_home_team[away], yearToEvaluate]])
+    else:
+        match_prediction = knn.predict([[lookup_home_team[home], lookup_home_team[away]]])
     print(home,' vs ',away, ': ',lookup_ftr[match_prediction[0]])
 
 def predictions():
@@ -128,7 +138,9 @@ def findBestK():
     bestK = 0
     bestAccuracy = 0.0
     foundAccuracy = 0.0
-    for k in range(1, 51):
+    maxNumberOfGames = 25 
+
+    for k in range(1, maxNumberOfGames):
         foundAccuracy = fit(k)
         if(foundAccuracy > bestAccuracy):
             bestAccuracy = foundAccuracy
@@ -136,10 +148,14 @@ def findBestK():
     print('Best k: ',bestK, 'Best accuracy: ', bestAccuracy)
     return bestK
             
+
+# Without Year: Best k:  19 Best accuracy:  0.46150592216582065
+# With Year:    Best k:  19 Best accuracy:  0.4483925549915397
+
 #merge_files()            
 #preprocess()
 #findBestK()
 #fit(findBestK())
-fit(34)
+fit(19)
 predictions()
 
