@@ -27,11 +27,8 @@ def merge_files():
         print(os.path.basename(file_))
         df = pd.read_csv(file_,index_col=None, header=0, error_bad_lines=False, skip_blank_lines = True)
         df['Date'] =  pd.to_datetime(df['Date'])
-
         df['HomeTeam'] = df['HomeTeam'].replace('', np.nan)
         df.dropna(subset=['HomeTeam'], inplace=True)
-        df['HomeTeam'] = df['HomeTeam'].str.replace('Middlesboro','Middlesbrough')
-        df['AwayTeam'] = df['AwayTeam'].str.replace('Middlesboro','Middlesbrough')
         list_.append(df)
     frame = pd.concat(list_)
     frame.to_csv(data_path+'total.csv')
@@ -63,7 +60,9 @@ def preprocess():
 
     matches['Date'] =  pd.to_datetime(matches['Date'])
     matches['MatchYear'] =  matches['Date'].dt.year
-    #matches['MatchYear'] = matches['MatchYear'].astype('int')
+    
+    matches['HomeTeam'] = matches['HomeTeam'].str.replace('Middlesboro','Middlesbrough')
+    matches['AwayTeam'] = matches['AwayTeam'].str.replace('Middlesboro','Middlesbrough')
 
     matches = matches[matches.FTRcat != -1]
 
