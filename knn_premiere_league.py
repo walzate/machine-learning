@@ -132,6 +132,8 @@ def predictions():
     predict('ManUnited', 'WestBrom')
     predict('Southampton', 'Chelsea')
     predict('Tottenham', 'ManCity')
+    predict('ManUnited', 'ManCity')
+    predict('ManCity', 'ManUnited')
 
 def findBestK():
     bestK = 0
@@ -155,6 +157,6 @@ def findBestK():
 #preprocess()
 #findBestK()
 #fit(findBestK())
-fit(19)
+fit(24)
 predictions()
 
