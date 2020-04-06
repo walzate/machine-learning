@@ -111,6 +111,16 @@ def fit(k):
     #print(lookup_away_team)
     return knn.score(X_test, y_test)
 
+def matchStatistics(home, away):
+    matches = pd.read_csv(data_path + final_prefix + file_name)
+    matches.sort_values(by = ['Date'], inplace = True)
+    filter = matches["HomeTeam"]== home
+    # filtering data 
+    matches.where(filter, inplace = True) 
+    filter = matches["AwayTeam"]== away
+    matches.where(filter, inplace = True) 
+    print(matches.dropna())
+    print(matches.groupby(['FTR']).count()["HomeTeam"])
 
 #Predictions
 def predict(home, away):
@@ -125,6 +135,7 @@ def predict(home, away):
         match_prediction = knn.predict([[lookup_home_team[home], lookup_home_team[away], yearToEvaluate]])
     else:
         match_prediction = knn.predict([[lookup_home_team[home], lookup_home_team[away]]])
+    matchStatistics (home,away)
     print(home,' vs ',away, ': ',lookup_ftr[match_prediction[0]])
 
 def predictions():
@@ -148,7 +159,22 @@ def findBestK():
             bestK = k
     print('Best k: ',bestK, 'Best accuracy: ', bestAccuracy)
     return bestK
-            
+
+        
+
+def exploreData():
+    # Loading the file
+    matches = pd.read_csv(data_path + final_prefix + file_name)
+    print (matches.describe())
+    print (matches.columns)
+    print (matches.shape)
+    print (matches.head)
+    print (matches.tail)
+    print (matches.sort_values(by = ['Date']).head)
+    matchStatistics('ManUnited', 'ManCity')
+    
+
+
 
 # Without Year: Best k:  19 Best accuracy:  0.46150592216582065
 # With Year:    Best k:  19 Best accuracy:  0.4483925549915397
@@ -159,4 +185,5 @@ def findBestK():
 #fit(findBestK())
 fit(24)
 predictions()
+#exploreData()
 
